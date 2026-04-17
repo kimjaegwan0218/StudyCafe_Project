@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:layout="http://www.w3.org/1999/xhtml" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${post.title} + ' | StudyCafe'">상세보기</title>
+<!--    <title>Community | StudyCafe</title>-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- JS 순서 고정 -->
+    <script defer src="@{/assets/js/app.js}"></script>
+    <script defer src="@{/assets/js/community.js}"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!--    배경어둡게 처리 (변경)-->
+    <style>
+        .page-overlay {
+            background-color: rgba(0, 0, 0, 0.4);
+            min-height: 100vh;
+        }
+    </style>
+
+    <!--    기존 스타일 버전-->
+    <!--    <style>[x-cloak]{display:none!important}</style>-->
+
+</head>
+
+<body x-data="app()" class="bg-slate-50 text-slate-800">
+
+<nav class="bg-white shadow sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="/" class="text-2xl font-bold text-emerald-800">StudyCafe.</a>
+        <div class="hidden md:flex space-x-6 font-bold text-sm items-center">
+
+            <!-- 공지(드롭다운: 요금 안내/FAQ/기본정보•지도) -->
+            <div class="relative inline-flex items-center h-full font-bold text-sm"
+                 x-data="{ open:false }"
+                 @mouseenter="open=true" @mouseleave="open=false">
+
+                <a href="/news" class="py-4 hover:text-emerald-700 transition">공지</a>
+
+                <div x-cloak x-show="open"
+                     class="absolute top-full left-0 mt-2 w-48 bg-white border rounded-xl shadow-lg overflow-hidden z-50"
+                     x-transition>
+                    <a href="/price" class="block px-4 py-3 text-sm hover:bg-slate-50">요금 안내</a>
+                    <a href="/faq" class="block px-4 py-3 text-sm hover:bg-slate-50">FAQ</a>
+                    <a href="/info" class="block px-4 py-3 text-sm hover:bg-slate-50">기본정보 • 지도</a>
+                </div>
+            </div>
+            <!-- 예약(드롭다운: 예약/구독) -->
+            <div class="relative"
+                 x-data="{ open:false, path: window.location.pathname }"
+                 @mouseenter="open=true" @mouseleave="open=false">
+
+                <a href="/booking"
+                   :class="(path.startsWith('/booking') || path.startsWith('/subscription')) ? 'text-emerald-700' : ''">
+                    예약
+                </a>
+
+                <div x-cloak x-show="open"
+                     class="absolute left-0 mt-2 w-32 bg-white border rounded-xl shadow-lg overflow-hidden z-50">
+
+                    <a href="/subscription"
+                       class="block px-4 py-3 text-sm hover:bg-slate-50"
+                       :class="path.startsWith('/subscription') ? 'text-emerald-700 font-bold' : ''">
+                        구독 구매
+                    </a>
+                </div>
+            </div>
+            <a href="/service" class="hover:text-emerald-700 transition">서비스</a>
+            <a href="/community" class="hover:text-emerald-700 transition">커뮤니티</a>
+
+            <div sec:authorize="isAnonymous()">
+                <a href="/login" class="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-2 rounded-full font-bold transition shadow-sm text-xs">
+                    로그인
+                </a>
+            </div>
+
+            <div sec:authorize="isAuthenticated()" class="flex items-center space-x-6">
+                <a href="/mypage" class="text-emerald-700 font-bold">내 페이지</a>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button class="text-slate-400 hover:text-red-500 transition ml-4">로그아웃</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</nav>
+
+<body class="bg-slate-50 text-slate-800">
+
+<main class="max-w-4xl mx-auto px-4 py-10">
+    <a href="javascript:history.back()" class="mb-6 text-emerald-600 font-bold hover:underline inline-block">
+        ← 뒤로
+    </a>
+
+    <div class="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-100 relative">
+        <a th:href="@{/community}" class="absolute top-8 right-8 text-slate-300 hover:text-slate-500 text-2xl">✕</a>
+
+
+        <div class="flex items-center space-x-3 mb-6">
+            <div class="w-10 h-10 bg-emerald-100 rounded-full"></div> <div class="flex-1">
+            <div class="flex items-center space-x-2">
+                <span class="font-bold text-slate-700" th:text="${post.userName}">작성자</span>
+                <span class="text-xs text-slate-400" th:text="${#temporals.format(post.createdAt, 'yyyy.MM.dd')}"></span>
+            </div>
+        </div>
+<!--            <div th:if="${post.userId == session.loginUser?.name}" class="flex items-center space-x-2">-->
+<!--            <div th:if="${post.userName == session.loginUser?.name}" class="flex items-center space-x-2">-->
+
+            <div sec:authorize="isAuthenticated()"
+                 th:if="${post.userId == #authentication.principal.user.id}"
+                 class="flex space-x-2">
+
+                <a th:href="@{/community/modify/{id}(id=${post.id})}"
+                   class="text-xs font-bold bg-slate-100 px-3 py-1.5 rounded-full hover:bg-slate-200">
+                    편집
+                </a>
+
+                <form th:action="@{/community/remove/{id}(id=${post.id})}" method="post"
+                      onsubmit="return confirm('삭제하시겠습니까?');">
+                    <input type="hidden" name="id" th:value="${post.id}">
+                    <button type="submit"
+                            class="text-xs font-bold bg-red-50 text-red-500 px-3 py-1.5 rounded-full hover:bg-red-100">
+                        삭제
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        <h3 class="text-2xl font-black mb-6 text-slate-800" th:text="${post.title}">제목</h3>
+
+        <div class="bg-slate-50 p-6 rounded-2xl mb-8 text-slate-600 leading-relaxed" th:text="${post.content}">
+            게시글 내용을 입력해주세요.
+        </div>
+
+        <form th:action="@{/community/like}" method="post">
+            <input type="hidden" name="postId" th:value="${post.id}">
+            <button type="submit" class="flex items-center space-x-1 text-rose-500 font-bold hover:scale-110 transition-transform">
+                <span>❤️</span>
+                <span th:text="${post.likedCount}"></span>
+            </button>
+        </form>
+
+        <div class="border-t pt-8">
+            <h4 class="font-bold mb-6 text-slate-800 flex items-center">
+                <h4 class="font-bold mb-6 text-slate-800 flex items-center">
+                    <span class="text-emerald-600 mr-2">💬</span> 코멘트
+                    <span class="ml-2 text-slate-400 font-normal text-sm"
+                          th:text="${comments != null ? comments.size() : 0} + '건'"></span>
+                </h4>
+
+                <div class="space-y-4 mb-10">
+                    <div th:each="comment : ${comments}"
+                         class="p-6 rounded-[25px] bg-white border border-slate-100 shadow-sm transition-all hover:shadow-md">
+
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-[10px] text-emerald-700 font-bold"
+                                     th:text="${#strings.substring(comment.userName,0,1)}">U</div>
+                                <div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="font-bold text-sm text-slate-800" th:text="${comment.userName}">사용자</span>
+                                        <span th:if="${comment.userName == 'StudyCafe 운영자'}"
+                                              class="bg-emerald-600 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">OFFICIAL</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-300"
+                                          th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">2026.01.16</span>
+                                </div>
+                            </div>
+
+                            <div sec:authorize="isAuthenticated()"
+                                 class="flex items-center space-x-3 text-[11px] font-bold"
+                                 th:if="${comment.userId == #authentication.principal.user.id}">
+
+
+                            <form th:action="@{/community/comment/remove/{id}(id=${comment.id})}"
+                                      method="post"
+                                      onsubmit="return confirm('정말 삭제하시겠습니까?');"
+                                      class="inline-block">
+
+                                    <input type="hidden" name="postId" th:value="${post.id}">
+                                    <button type="submit"
+                                            class="text-slate-300 hover:text-red-400 transition-colors">
+                                        삭제
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="pl-1">
+                            <p class="text-sm text-slate-600 leading-relaxed" th:text="${comment.text}">댓글 내용이 출력됩니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!--댓글 등록 창 & 보내기 버튼 (1)-->
+                <form th:action="@{/community/comment/register}" method="post" id="commentForm" class="relative">
+                    <input type="hidden" name="postId" th:value="${post.id}">
+
+                    <input type="hidden" name="id" id="commentUpdateId" value="">
+
+                    <div class="relative">
+                    <textarea name="text" rows="3" required
+                         class="w-full border border-slate-200 p-4 rounded-2xl bg-slate-50 focus:ring-2 focus:ring-emerald-500 outline-none transition-all resize-none"
+                         placeholder="댓글 입력..."></textarea>
+
+                        <button type="submit"
+                                class="absolute bottom-4 right-4 bg-emerald-700 text-white px-6 py-2 rounded-xl font-bold hover:bg-emerald-800 transition-colors">
+                            보내기
+                        </button>
+                    </div>
+                </form>
+            </h4>
+        </div>
+    </div>
+</main>
+
+<script th:inline="javascript">
+
+    <!--  삭제 창 띄어주는 역할 (1)-->
+
+    function editComment(id, text) {
+
+
+        form.submit();
+    }
+
+</script>
+</body>
+</body>
+</html>
+

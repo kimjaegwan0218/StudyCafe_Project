@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:layout="http://www.w3.org/1999/xhtml" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Community | StudyCafe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- JS 순서 고정 -->
+    <script defer src="/assets/js/app.js"></script>
+    <script defer src="/assets/js/community.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>[x-cloak]{display:none!important}</style>
+
+</head>
+
+<body x-data="app()" class="bg-slate-50 text-slate-800">
+<nav class="bg-white shadow sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="/" class="text-2xl font-bold text-emerald-800">StudyCafe.</a>
+        <div class="hidden md:flex space-x-6 font-bold text-sm items-center">
+
+            <!-- 공지(드롭다운: 요금 안내/FAQ/기본정보•지도) -->
+            <div class="relative inline-flex items-center h-full font-bold text-sm"
+                 x-data="{ open:false }"
+                 @mouseenter="open=true" @mouseleave="open=false">
+
+                <a href="/news" class="py-4 hover:text-emerald-700 transition">공지</a>
+
+                <div x-cloak x-show="open"
+                     class="absolute top-full left-0 mt-2 w-48 bg-white border rounded-xl shadow-lg overflow-hidden z-50"
+                     x-transition>
+                    <a href="/price" class="block px-4 py-3 text-sm hover:bg-slate-50">요금 안내</a>
+                    <a href="/faq" class="block px-4 py-3 text-sm hover:bg-slate-50">FAQ</a>
+                    <a href="/info" class="block px-4 py-3 text-sm hover:bg-slate-50">기본정보 • 지도</a>
+                </div>
+            </div>
+            <!-- 예약(드롭다운: 예약/구독) -->
+            <div class="relative"
+                 x-data="{ open:false, path: window.location.pathname }"
+                 @mouseenter="open=true" @mouseleave="open=false">
+
+                <a href="/booking"
+                   :class="(path.startsWith('/booking') || path.startsWith('/subscription')) ? 'text-emerald-700' : ''">
+                    예약
+                </a>
+
+                <div x-cloak x-show="open"
+                     class="absolute left-0 mt-2 w-32 bg-white border rounded-xl shadow-lg overflow-hidden z-50">
+
+                    <a href="/subscription"
+                       class="block px-4 py-3 text-sm hover:bg-slate-50"
+                       :class="path.startsWith('/subscription') ? 'text-emerald-700 font-bold' : ''">
+                        구독 구매
+                    </a>
+                </div>
+            </div>
+            <a href="/service" class="hover:text-emerald-700 transition">서비스</a>
+            <a href="/community" class="hover:text-emerald-700 transition">커뮤니티</a>
+
+            <div sec:authorize="isAnonymous()">
+                <a href="/login" class="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-2 rounded-full font-bold transition shadow-sm text-xs">
+                    로그인
+                </a>
+            </div>
+
+            <div sec:authorize="isAuthenticated()" class="flex items-center space-x-6">
+                <a href="/mypage" class="text-emerald-700 font-bold">내 페이지</a>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button class="text-slate-400 hover:text-red-500 transition ml-4">로그아웃</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</nav>
+
+<!-- ===== WRITE / EDIT ===== -->
+
+<main class="max-w-4xl mx-auto px-4 py-10">
+
+    <a th:href="@{/community}" class="mb-6 text-emerald-600 font-bold hover:underline inline-block">
+        ← 뒤로
+    </a>
+
+    <form th:action="@{/community/register}" th:object="${postForm}" method="post"
+          class="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-100">
+
+        <h3 class="text-2xl font-black mb-8 text-slate-800">새 글 작성</h3>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-slate-500 mb-2 ml-1">제목</label>
+                <input type="text" th:field="*{title}"
+                       class="w-full border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-emerald-500 p-4 rounded-2xl bg-slate-50 transition-all outline-none"
+                       placeholder="제목을 입력하세요" required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-500 mb-2 ml-1">내용</label>
+                <textarea th:field="*{content}"
+                          class="w-full border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-emerald-500 p-4 rounded-2xl h-64 bg-slate-50 transition-all outline-none resize-none"
+                          placeholder="내용을 입력하세요" required></textarea>
+            </div>
+
+
+            <button type="submit"
+                    class="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-emerald-700/20 transition-all mt-4">
+                저장하기
+            </button>
+        </div>
+    </form>
+</main>
+
+
+
+
+
+
+
+
+
+</body>
+</html>

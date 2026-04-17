@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title>기본 정보 | StudyCafe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style> * { font-family: "Pretendard Variable", Pretendard, sans-serif !important; letter-spacing: -0.02em; } </style>
+</head>
+
+<body class="bg-white text-slate-800">
+
+<nav class="bg-white border-b sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+    <a href="/admin" class="text-2xl font-bold text-emerald-800">StudyCafe.</a>
+    <div class="hidden md:flex space-x-8 items-center font-bold text-sm text-slate-700">
+      <a href="/login" class="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-2 rounded-full font-bold transition shadow-sm text-xs">로그인</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-5xl mx-auto mt-10 p-4">
+
+  <div class="mb-6">
+    <a href="javascript:history.back()" class="text-emerald-700 font-bold hover:underline">← 뒤로</a>
+  </div>
+
+  <div class="bg-white rounded-[2rem] shadow-xl border overflow-hidden">
+
+    <div class="flex flex-col md:flex-row">
+
+      <div class="w-full md:w-5/12 p-10 flex flex-col justify-center bg-slate-50">
+        <h2 class="text-3xl font-black text-emerald-900 mb-8">기본 정보</h2>
+
+        <div class="space-y-6 text-slate-700 font-medium">
+          <div>
+            <p class="text-xs text-emerald-600 font-bold mb-1">주소</p>
+            <p class="text-lg font-bold">부산광역시 부산진구 중앙대로 708</p>
+            <p class="text-sm text-slate-400">부산 파이낸스센터 4F, 5F 부산IT교육센터</p>
+          </div>
+
+          <div>
+            <p class="text-xs text-emerald-600 font-bold mb-1">전화번호</p>
+            <p class="text-lg font-bold">051-753-5600</p>
+          </div>
+
+          <div>
+            <p class="text-xs text-emerald-600 font-bold mb-1">영업시간</p>
+            <p class="text-lg font-bold">24시간 영업 / 연중무휴</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full md:w-7/12 h-96 md:h-auto bg-slate-200 relative">
+
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3262.0242616616365!2d129.056833876349!3d35.156015672761406!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3568eb6feb39fa0d%3A0x17502eaffb28a5b4!2z67aA7IKwSVTqtZDsnKHshLzthLA!5e0!3m2!1sko!2skr!4v1768808666343!5m2!1sko!2skr" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+      </div>
+    </div>
+  </div>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <th:block th:replace="admin/admin-fragments :: head('StudyCafe Admin - Top')"></th:block>
+</head>
+<body class="bg-slate-50 text-slate-800" x-data="adminApp()">
+<th:block th:replace="admin/admin-fragments :: nav('top')"></th:block>
+
+<main class="max-w-7xl mx-auto mt-6 p-4 fade-in">
+  <div class="bg-white p-10 rounded-[40px] shadow-xl border">
+    <h1 class="text-4xl font-black text-emerald-900 mb-4">管理者メニュー</h1>
+    <p class="text-slate-500 mb-10">各機能は上部ナビ、または下のボタンから移動できます。</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <a th:href="@{/admin/mypage}" class="p-8 rounded-3xl border hover:shadow-lg transition bg-emerald-50">
+        <p class="font-black text-emerald-900 text-xl">ダッシュボード</p>
+        <p class="text-sm text-emerald-700 mt-2">予約/問い合わせ/会員管理</p>
+      </a>
+      <a th:href="@{/admin/news}" class="p-8 rounded-3xl border hover:shadow-lg transition bg-white">
+        <p class="font-black text-slate-900 text-xl">告知管理</p>
+        <p class="text-sm text-slate-500 mt-2">カテゴリ/作成/編集/削除</p>
+      </a>
+      <a th:href="@{/admin/booking}" class="p-8 rounded-3xl border hover:shadow-lg transition bg-white">
+        <p class="font-black text-slate-900 text-xl">予約フロー確認</p>
+        <p class="text-sm text-slate-500 mt-2">ステップ/席/決済UI</p>
+      </a>
+    </div>
+  </div>
+</main>
+
+<th:block th:replace="admin/admin-fragments :: footer"></th:block>
+</body>
+</html>

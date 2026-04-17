@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Study Cafe - フルスペック統合プラットフォーム</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700;900&display=swap');
+        body { font-family: 'Noto Sans JP', sans-serif; scroll-behavior: smooth; }
+        .carousel-track { display: flex; width: calc(400px * 10); animation: scroll 40s linear infinite; }
+        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .hover-expand { transition: max-height 0.5s ease; max-height: 58px; overflow: hidden; }
+        .hover-expand:hover { max-height: 500px; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .seat-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+    </style>
+
+    <!-- Alpine가 실행되기 전에 app()가 있어야 해서 state.js 먼저 -->
+    <script defer src="/assets/js/state.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Alpine 로드 후 router가 Alpine.$data를 쓰게 router.js는 마지막 -->
+    <script defer src="/assets/js/router.js"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-800" x-data="app()">
+
+<nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="text-2xl font-bold text-emerald-800 cursor-pointer"
+             @click="go('/')">StudyCafe.</div>
+
+        <div class="hidden md:flex space-x-6 items-center font-bold text-sm">
+
+            <div class="relative group">
+                <button @click="go('/news')" class="hover:text-emerald-600 py-2">告知</button>
+                <div class="absolute hidden group-hover:block bg-white shadow-lg rounded mt-0 p-2 w-48 border animate-fade-in">
+                    <button @click="go('/news', { subpage: 'price' })"
+                            class="block w-full text-left p-2 hover:bg-emerald-50">料金案内</button>
+                    <button @click="go('/news', { subpage: 'faq' })"
+                            class="block w-full text-left p-2 hover:bg-emerald-50">よくある質問</button>
+                    <button @click="go('/news', { subpage: 'basic_info' })"
+                            class="block w-full text-left p-2 hover:bg-emerald-50">基本情報・地図</button>
+                </div>
+            </div>
+
+            <div class="relative group">
+                <button @click="go('/booking', { bookingStep: 1 })" class="hover:text-emerald-600 py-2">予約</button>
+                <div class="absolute hidden group-hover:block bg-white shadow-lg rounded mt-0 p-2 w-56 border">
+                    <button @click="go('/subscription')"
+                            class="block w-full text-left p-2 hover:bg-emerald-50 text-emerald-700 font-bold">サブスク購入</button>
+                </div>
+            </div>
+
+            <button @click="go('/service')" class="hover:text-emerald-600">サービス</button>
+            <button @click="go('/community', { subpage: '', visiblePosts: 10 })" class="hover:text-emerald-600">コミュニティ</button>
+
+            <template x-if="isLoggedIn">
+                <div class="flex items-center space-x-6">
+                    <button @click="go('/mypage')" class="font-bold text-emerald-700">マイページ</button>
+                    <button @click="logout()" class="text-sm font-medium text-slate-400 hover:text-red-500">ログアウト</button>
+                </div>
+            </template>
+
+            <template x-if="!isLoggedIn">
+                <button @click="go('/login')"
+                        class="bg-emerald-700 text-white px-6 py-2 rounded-full font-bold shadow-md hover:bg-emerald-800 transition">
+                    ログイン
+                </button>
+            </template>
+
+        </div>
+    </div>
+</nav>
+
+<main class="max-w-7xl mx-auto mt-6 p-4">
+    <!-- 여기에 /pages/*.html이 들어옴 -->
+    <div id="view" class="fade-in"></div>
+</main>
+
+<footer class="mt-24 py-16 bg-slate-900 text-white text-center">
+    <div class="max-w-7xl mx-auto px-4">
+        <p class="text-4xl font-black italic text-emerald-500 mb-4 tracking-tighter">StudyCafe.</p>
+        <div class="flex justify-center space-x-6 text-slate-500 text-sm mb-10">
+            <a href="#" class="hover:text-white">利用規約</a>
+            <a href="#" class="hover:text-white">プライバシーポリシー</a>
+            <a href="#" class="hover:text-white">特定商取引法に基づく表記</a>
+        </div>
+        <p class="text-[10px] text-slate-600">&copy; 2024 Study Cafe Premium Space. All Rights Reserved.</p>
+    </div>
+</footer>
+
+</body>
+</html>

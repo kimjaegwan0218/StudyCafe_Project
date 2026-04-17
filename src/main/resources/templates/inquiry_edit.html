@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Community | StudyCafe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script defer src="/assets/js/app.js"></script>
+    <script defer src="/assets/js/community.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        /* 폰트 모든 요소에 프리텐다드 폰트 적용 */
+        * {
+            font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif !important;
+            letter-spacing: -0.02em; /* 1번 사진처럼 글자를 살짝 쫀쫀하게 만듦 */
+        }
+
+        /* body에도 명시적으로 적용 */
+        body {
+            font-family: "Pretendard Variable", Pretendard, sans-serif !important;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800">
+
+<nav class="bg-white border-b sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <a href="/admin" class="text-2xl font-bold text-emerald-800">StudyCafe.</a>
+
+        <div class="hidden md:flex space-x-6 font-bold text-sm items-center">
+
+            <!-- 공지(드롭다운: 요금 안내/FAQ/기본정보•지도) -->
+            <div class="relative inline-flex items-center h-full font-bold text-sm"
+                 x-data="{ open:false }"
+                 @mouseenter="open=true" @mouseleave="open=false">
+
+                <a href="/news" class="py-4 hover:text-emerald-700 transition">공지</a>
+
+                <div x-cloak x-show="open"
+                     class="absolute top-full left-0 mt-2 w-48 bg-white border rounded-xl shadow-lg overflow-hidden z-50"
+                     x-transition>
+                    <a href="/price" class="block px-4 py-3 text-sm hover:bg-slate-50">요금 안내</a>
+                    <a href="/faq" class="block px-4 py-3 text-sm hover:bg-slate-50">FAQ</a>
+                    <a href="/info" class="block px-4 py-3 text-sm hover:bg-slate-50">기본정보 • 지도</a>
+                </div>
+            </div>
+
+            <a href="/booking" class="hover:text-emerald-700 transition">예약</a>
+            <a href="/service" class="hover:text-emerald-700 transition">서비스</a>
+            <a href="/community" class="hover:text-emerald-700 transition">커뮤니티</a>
+
+            <a href="/mypage" class="text-emerald-700 font-bold">내 페이지</a>
+
+            <form th:action="@{/logout}" method="post" class="inline">
+                <button class="text-slate-400 hover:text-red-500 transition ml-4">로그아웃</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<main class="max-w-3xl mx-auto mt-10 p-4">
+    <div class="bg-white p-8 rounded-3xl shadow border">
+        <h2 class="text-2xl font-black mb-6 text-emerald-800">문의글 수정</h2>
+
+        <form th:action="@{/inquiry/edit/{id}(id=${inquiry.id})}" method="post">
+
+            <div class="mb-4">
+                <label class="block text-sm font-bold mb-2">제목</label>
+                <input type="text" name="title" required
+                       th:value="${inquiry.title}"
+                       class="w-full border p-3 rounded-xl bg-slate-50 focus:outline-emerald-500">
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-bold mb-2">내용</label>
+                <textarea name="content" rows="6" required
+                          th:text="${inquiry.content}"
+                          class="w-full border p-3 rounded-xl bg-slate-50 focus:outline-emerald-500"></textarea>
+            </div>
+
+            <div class="flex justify-end space-x-2">
+                <a href="/mypage" class="px-5 py-3 rounded-xl border font-bold hover:bg-slate-50 text-slate-600">취소</a>
+
+                <button type="submit" class="bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-800">
+                    수정 완료
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+</body>
+</html>

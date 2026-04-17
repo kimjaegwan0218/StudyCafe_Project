@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(titleText)">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${titleText}">Admin</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700;900&display=swap');
+        body { font-family: 'Noto Sans JP', sans-serif; scroll-behavior: smooth; }
+        .carousel-track { display: flex; width: calc(400px * 10); animation: scroll 40s linear infinite; }
+        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .hover-expand { transition: max-height 0.5s ease; max-height: 58px; overflow: hidden; }
+        .hover-expand:hover { max-height: 500px; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .seat-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+        [x-cloak] { display:none !important; }
+    </style>
+
+    <!-- 관리자 Alpine 상태 (공통) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script defer src="/admin/admin-state.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+
+<body></body>
+
+<nav th:fragment="nav(active)" class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <a th:href="@{/admin/mypage}" class="text-2xl font-bold text-emerald-800 cursor-pointer">
+            StudyCafe. <span class="text-[10px] font-black text-emerald-500 align-top">ADMIN</span>
+        </a>
+
+        <div class="hidden md:flex space-x-6 items-center font-bold text-sm">
+            <a th:href="@{/admin/news}"
+               class="hover:text-emerald-600"
+               th:classappend="${active}=='news' ? ' text-emerald-700' : ''">공지</a>
+
+            <a th:href="@{/admin/booking}"
+               class="hover:text-emerald-600"
+               th:classappend="${active}=='booking' ? ' text-emerald-700' : ''">예약</a>
+
+            <a th:href="@{/admin/subscription}"
+               class="hover:text-emerald-600"
+               th:classappend="${active}=='subscription' ? ' text-emerald-700' : ''">구독</a>
+
+            <a th:href="@{/admin/service}"
+               class="hover:text-emerald-600"
+               th:classappend="${active}=='service' ? ' text-emerald-700' : ''">서비스</a>
+
+            <a th:href="@{/admin/community}"
+               class="hover:text-emerald-600"
+               th:classappend="${active}=='community' ? ' text-emerald-700' : ''">커뮤니티</a>
+
+            <a th:href="@{/admin/mypage}"
+               class="hover:text-emerald-600"
+               th:classappend="${active}=='mypage' ? ' text-emerald-700' : ''">내 페이지</a>
+
+            <a th:href="@{/}" class="text-slate-400 hover:text-slate-700 text-xs font-black">← 사용자 화면</a>
+        </div>
+    </div>
+</nav>
+
+<footer th:fragment="footer" class="mt-24 py-16 bg-slate-900 text-white text-center">
+    <div class="max-w-7xl mx-auto px-4">
+        <p class="text-4xl font-black italic text-emerald-500 mb-4 tracking-tighter">StudyCafe.</p>
+        <div class="flex justify-center space-x-6 text-slate-500 text-sm mb-10">
+            <a href="#" class="hover:text-white">툴바 사용자 지정</a>
+            <a href="#" class="hover:text-white">개인정보보호정책</a>
+            <a href="#" class="hover:text-white">특정상거래법에 의거한 표기</a>
+        </div>
+        <p class="text-[10px] text-slate-600">&copy; 2024 Study Cafe Premium Space. All Rights Reserved.</p>
+    </div>
+</footer>
+</html>

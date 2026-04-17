@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입 | StudyCafe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <style>
+        * { font-family: "Pretendard Variable", Pretendard, sans-serif !important; letter-spacing: -0.02em; }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+<nav class="bg-white border-b sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <a href="/admin" class="text-2xl font-bold text-emerald-800">StudyCafe.</a>
+        <div class="hidden md:flex space-x-6 font-bold text-sm items-center">
+            <a href="/news" class="hover:text-emerald-700 transition py-4">공지</a>
+            <a href="/booking" class="hover:text-emerald-700 transition">예약</a>
+            <a href="/service" class="hover:text-emerald-700 transition">서비스</a>
+            <a href="/community" class="hover:text-emerald-700 transition">커뮤니티</a>
+
+            <div sec:authorize="isAnonymous()">
+                <a href="/login" class="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-2 rounded-full font-bold transition shadow-sm text-xs">
+                    로그인
+                </a>
+            </div>
+
+            <div sec:authorize="isAuthenticated()" class="flex items-center space-x-6">
+                <a href="/mypage" class="text-emerald-700 font-bold">내 페이지</a>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button class="text-slate-400 hover:text-red-500 transition ml-4">로그아웃</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="flex-grow flex items-center justify-center p-4 py-20">
+    <div class="bg-white p-10 rounded-[2.5rem] shadow-xl border w-full max-w-lg">
+
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-black text-emerald-800 mb-2">회원가입</h1>
+            <p class="text-slate-400 text-sm">정보에 맞춰 입력해주세요.</p>
+        </div>
+
+        <div th:if="${param.error}" class="bg-red-50 text-red-500 p-4 rounded-2xl mb-6 text-center text-sm font-bold border border-red-100">
+            이미 가입된 회원이거나 오류가 발생했습니다.
+        </div>
+
+        <form action="/join" method="post" class="space-y-5">
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2 ml-1">이름</label>
+                <input type="text" name="name" required placeholder="홍길동"
+                       class="w-full border p-4 rounded-2xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition font-bold text-slate-800">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2 ml-1">전화번호</label>
+                <input type="text" name="phoneNumber" required placeholder="010-1234-5678"
+                       class="w-full border p-4 rounded-2xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition font-bold text-slate-800">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2 ml-1">이메일 (아이디)</label>
+                <input type="email" name="username" required placeholder="user@example.com"
+                       class="w-full border p-4 rounded-2xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition font-bold text-slate-800">
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2 ml-1">비밀번호</label>
+                <input type="password" name="password" required placeholder="비밀번호 입력"
+                       class="w-full border p-4 rounded-2xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition font-bold text-slate-800">
+            </div>
+
+            <button class="w-full bg-emerald-800 hover:bg-emerald-900 text-white p-4 rounded-2xl font-bold text-lg shadow-lg shadow-emerald-200 transition transform hover:-translate-y-1 mt-4">
+                가입 완료
+            </button>
+        </form>
+
+        <div class="mt-8 text-center">
+            <a href="/login" class="text-sm font-bold text-slate-400 hover:text-emerald-600 transition">
+                ← 로그인 화면으로 돌아가기
+            </a>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

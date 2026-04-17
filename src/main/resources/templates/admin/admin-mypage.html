@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <th:block th:replace="admin/admin-fragments :: head('StudyCafe Admin - Dashboard')"></th:block>
+</head>
+
+<body class="bg-slate-50 text-slate-800" x-data="adminApp()" x-init="init()" x-cloak>
+
+<th:block th:replace="admin/admin-fragments :: nav('mypage')"></th:block>
+
+<main class="max-w-7xl mx-auto mt-6 p-4 fade-in">
+    <div class="max-w-6xl mx-auto">
+
+        <div class="flex justify-between items-end mb-10">
+            <h2 class="text-4xl font-black">관리자 대시보드</h2>
+        </div>
+
+        <!-- 상단 요약 카드 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div @click="adminTab = 'calendar'; $nextTick(()=> _calendar?.updateSize())"
+                 class="bg-white p-6 rounded-3xl border-2 cursor-pointer transition"
+                 :class="adminTab === 'calendar' ? 'border-emerald-500 shadow-lg' : 'border-transparent'">
+                <p class="text-sm font-bold text-slate-400">오늘의 예약</p>
+                <p class="text-3xl font-black text-emerald-900"> <span x-text="todayReservationCount"></span>
+                    <span class="text-sm">건</span></p>
+            </div>
+
+            <div @click="adminTab = 'inquiry'"
+                 class="bg-white p-6 rounded-3xl border-2 cursor-pointer transition"
+                 :class="adminTab === 'inquiry' ? 'border-emerald-500 shadow-lg' : 'border-transparent'">
+                <p class="text-sm font-bold text-slate-400">미답변 1:1 문의</p>
+                <p class="text-3xl font-black text-orange-500"> <span x-text="unansweredInquiryCount"></span>
+                    <span class="text-sm">건</span></p>
+            </div>
+
+            <div @click="adminTab = 'users'"
+                 class="bg-white p-6 rounded-3xl border-2 cursor-pointer transition"
+                 :class="adminTab === 'users' ? 'border-emerald-500 shadow-lg' : 'border-transparent'">
+                <p class="text-sm font-bold text-slate-400">총 회원 수</p>
+                <p class="text-3xl font-black text-slate-800"> <span x-text="totalUserCount"></span>
+                    <span class="text-sm">명</span></p>
+            </div>
+        </div>
+
+        <!-- calendar -->
+        <div x-show="adminTab === 'calendar'" class="bg-white p-8 rounded-[40px] shadow-sm border mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-black">예약 현황 캘린더</h3>
+            </div>
+
+            <!-- ✅ FullCalendar 렌더링 자리 -->
+            <div id="fcCalendar" class="bg-white rounded-2xl p-4"></div>
+        </div>
+
+        <!-- ✅ 날짜 클릭하면 아래 보드가 열림 -->
+        <div x-show="adminTab === 'calendar' && selectedDateStr" class="mt-6">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-xl font-black" x-text="selectedDateStr + ' 예약 현황'"></h4>
+                <button type="button"
+                        class="text-sm font-bold px-4 py-2 rounded-xl border hover:bg-slate-50"
+                        @click="selectedDateStr=null; dayReservations=[];">
+                    닫기
+                </button>
+            </div>
+
+            <!-- 보드 전체 -->
+            <div class="bg-white rounded-3xl border p-4 overflow-auto">
+                <!-- 상단 시간 눈금(간단히 0~24시) -->
+                <div class="flex text-[11px] text-slate-500 font-bold mb-2" style="min-width: 900px;">
+                    <div class="w-[110px] shrink-0">좌석</div>
+                    <div class="flex-1 relative">
+                        <div class="flex justify-between">
+                            <template x-for="h in 25" :key="h">
+                                <div class="w-[1px]"></div>
+                            </template>
+                        </div>
+                        <div class="flex justify-between">
+                            <template x-for="h in 24" :key="'t'+h">
+                                <div x-text="String(h).padStart(2,'0') + ':00'"></div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 좌석 rows -->
+                <template x-for="seat in seatList" :key="seat">
+                    <div class="flex items-center border-t py-2" style="min-width: 900px;">
+                        <!-- 좌석 라벨 -->
+                        <div class="w-[110px] shrink-0 font-bold text-slate-700" x-text="'좌석 ' + seat"></div>
+
+                        <!-- 타임라인 -->
+                        <div class="flex-1 relative h-8 bg-slate-50 rounded-xl overflow-hidden">
+                            <!-- 배경: 1시간 선(가벼운 시각화) -->
+                            <template x-for="h in 24" :key="seat + '-line-' + h">
+                                <div class="absolute top-0 bottom-0 w-px bg-slate-200"
+                                     :style="`left:${(h/24)*100}%`"></div>
+                            </template>
+
+                            <!-- 예약 막대들 -->
+                            <template x-for="r in getSeatReservations(seat)" :key="r.reservationId">
+                                <div class="absolute top-1 bottom-1 rounded-lg text-[10px] px-2 flex items-center
+                                            bg-emerald-200 text-emerald-900 border border-emerald-300"
+                                     :title="`${r.name} ${r.start}~${r.end}`"
+                                     :style="barStyle(r)">
+                                    <span class="truncate" x-text="r.name"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+
+
+        <!-- inquiry -->
+        <div x-show="adminTab === 'inquiry'" class="space-y-4">
+
+            <!-- ✅ (users 탭에서 가져온) 검색/필터 UI -->
+            <div class="flex flex-col md:flex-row gap-4 mb-2">
+                <!-- userId 검색 -->
+                <div class="relative flex-1">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                    <input type="number"
+                           x-model.number="inquiryUserId"
+                           @keydown.enter="resetInquiryPage(); fetchInquiries()"
+                           placeholder="userId로 검색 (예: 20)"
+                           class="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-100 focus:border-emerald-500 outline-none transition bg-white shadow-sm">
+                </div>
+
+                <!-- status 필터 -->
+                <select x-model="inquiryStatus"
+                        @change="resetInquiryPage(); fetchInquiries()"
+                        class="bg-white border-2 border-slate-100 px-6 py-4 rounded-2xl font-bold text-slate-600 outline-none focus:border-emerald-500">
+                    <option value="ALL">전체(ALL)</option>
+                    <option value="CLOSED">미열람(CLOSED)</option>
+                    <option value="OPEN">미답변(OPEN)</option>
+                    <option value="ANSWERED">답변완료(ANSWERED)</option>
+                </select>
+
+                <!-- 조회 버튼 -->
+                <button type="button"
+                        @click="resetInquiryPage(); fetchInquiries()"
+                        class="bg-slate-900 text-white px-6 py-4 rounded-2xl font-bold shadow-sm">
+                    조회
+                </button>
+            </div>
+
+            <!-- ✅ 목록 -->
+            <div class="bg-white rounded-[40px] border overflow-hidden shadow-sm">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b text-xs font-bold text-slate-400 uppercase">
+                    <tr>
+                        <th class="p-6">사용자</th>
+                        <th class="p-6">제목</th>
+                        <th class="p-6">상태</th>
+                        <th class="p-6 text-right">Actions</th>
+                    </tr>
+                    </thead>
+
+                    <tbody class="divide-y text-sm">
+
+                    <!-- 목록 -->
+                    <template x-for="inq in inquiries" :key="inq.inquiryId">
+                        <tr class="hover:bg-slate-50 transition">
+                            <!-- 사용자 -->
+                            <td class="p-6">
+                                <p class="font-bold text-slate-800" x-text="inq.writerName"></p>
+                                <p class="text-xs text-slate-400" x-text="'userId: ' + inq.writerId"></p>
+                            </td>
+
+                            <!-- 제목 -->
+                            <td class="p-6">
+                                <p class="font-bold text-slate-800" x-text="inq.title"></p>
+                                <p class="text-xs text-slate-400 line-clamp-1" x-text="inq.content"></p>
+                            </td>
+
+                            <!-- 상태 -->
+                            <td class="p-6">
+                              <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-widest"
+                                    :class="inq.status === 'ANSWERED'
+                                      ? 'bg-slate-100 text-slate-600'
+                                      : (inq.status === 'OPEN'
+                                          ? 'bg-orange-100 text-orange-600'
+                                          : 'bg-slate-200 text-slate-700')"
+                                    x-text="inq.status === 'ANSWERED'
+                                      ? '답변완료'
+                                      : (inq.status === 'OPEN' ? '미답변' : '미열람')">
+                              </span>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="p-6 text-right">
+                                <button type="button"
+                                        class="font-bold text-xs px-4 py-2 rounded-xl border transition hover:bg-slate-50"
+                                        @click="openInquiryReply(inq)"
+                                        x-text="getInquiryActionLabel(inq)">
+                                </button>
+                            </td>
+                        </tr>
+                    </template>
+
+                    </tbody>
+                </table>
+
+                <!-- ✅ inquiry 페이징 -->
+                <div class="flex items-center justify-between px-6 py-4 border-t bg-white">
+                    <p class="text-xs text-slate-500 font-bold"
+                       x-text="`총 ${inquiryPage.totalElements}건`"></p>
+
+                    <div class="flex gap-2 items-center">
+                        <button type="button"
+                                class="px-3 py-2 rounded-xl border text-xs font-bold"
+                                :disabled="inquiryPage.page <= 1"
+                                :class="inquiryPage.page <= 1 ? 'opacity-40 cursor-not-allowed' : ''"
+                                @click="goInquiryPage(inquiryPage.page - 1)">
+                            이전
+                        </button>
+
+                        <template x-for="p in inquiryPageNumbers" :key="p">
+                            <button type="button"
+                                    class="px-3 py-2 rounded-xl border text-xs font-bold"
+                                    :class="p === inquiryPage.page ? 'bg-slate-900 text-white border-slate-900' : ''"
+                                    @click="goInquiryPage(p)"
+                                    x-text="p">
+                            </button>
+                        </template>
+
+                        <button type="button"
+                                class="px-3 py-2 rounded-xl border text-xs font-bold"
+                                :disabled="inquiryPage.page >= inquiryPage.totalPages"
+                                :class="inquiryPage.page >= inquiryPage.totalPages ? 'opacity-40 cursor-not-allowed' : ''"
+                                @click="goInquiryPage(inquiryPage.page + 1)">
+                            다음
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- users -->
+        <div x-show="adminTab === 'users'" class="space-y-6">
+
+            <!-- (선택) 로딩/에러 표시: admin-state.js에 isUsersLoading/usersErrorMessage 있으면 바로 동작 -->
+            <div class="bg-white p-4 rounded-2xl border" x-show="isUsersLoading">
+                <p class="text-sm text-slate-500 font-bold">회원 목록 불러오는 중...</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border" x-show="usersErrorMessage">
+                <p class="text-sm text-red-600 font-bold" x-text="usersErrorMessage"></p>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <div class="relative flex-1">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                    <input type="text"
+                           x-model="userSearchQuery"
+                           @keydown.enter="userPage.page=1; searchUsers()"
+                           placeholder="이름 또는 이메일로 검색..."
+                           class="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-100 focus:border-emerald-500 outline-none transition bg-white shadow-sm">
+                </div>
+
+                <select x-model="userFilterStatus"
+                        class="bg-white border-2 border-slate-100 px-6 py-4 rounded-2xl font-bold text-slate-600 outline-none focus:border-emerald-500">
+                    <option value="all">전체 상태</option>
+                    <option value="active">활성 회원만</option>
+                    <option value="frozen">동결 회원만</option>
+                </select>
+            </div>
+
+            <div class="bg-white rounded-[40px] border overflow-hidden shadow-sm">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b text-xs font-bold text-slate-400 uppercase">
+                    <tr>
+                        <th class="p-6">회원</th>
+                        <th class="p-6">상태</th>
+                        <th class="p-6 text-right">Detail</th>
+                        <th class="p-6 text-right">Actions</th>
+                    </tr>
+                    </thead>
+
+                    <tbody class="divide-y text-sm">
+                    <template x-for="u in filteredUsers" :key="u.id">
+                        <tr class="hover:bg-slate-50 transition">
+                            <!-- 회원 -->
+                            <td class="p-6">
+                                <p class="font-bold text-slate-800" x-text="u.name"></p>
+                                <p class="text-xs text-slate-400" x-text="u.email"></p>
+                            </td>
+
+                            <!-- 상태 -->
+                            <td class="p-6">
+                                <span x-show="u.isFrozen"
+                                      class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-[10px] font-black tracking-widest">FROZEN</span>
+                                <span x-show="!u.isFrozen"
+                                      class="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black tracking-widest">ACTIVE</span>
+                            </td>
+
+                            <!-- Detail -->
+                            <td class="p-6 text-right space-x-2">
+                                <button type="button"
+                                        class="font-bold text-xs px-4 py-2 rounded-xl border transition hover:bg-slate-50"
+                                        @click="openUserDetail(u.id)">
+                                    상세보기
+                                </button>
+                            </td>
+
+                            <!-- Action -->
+                            <td class="p-6 text-right">
+                                <button @click="toggleFreeze(u)"
+                                        :class="u.isFrozen ? 'text-emerald-600 hover:bg-emerald-50' : 'text-red-600 hover:bg-red-50'"
+                                        class="font-bold text-xs px-4 py-2 rounded-xl border transition"
+                                        x-text="u.isFrozen ? '동결 해제' : '계정 동결'"></button>
+                            </td>
+                        </tr>
+                    </template>
+
+                    <template x-if="filteredUsers.length === 0">
+                        <tr>
+                            <td colspan="3" class="p-20 text-center text-slate-400 font-bold">
+                                일치하는 회원을 찾을 수 없습니다.
+                            </td>
+                        </tr>
+                    </template>
+                    </tbody>
+                </table>
+
+                <!-- ✅ users 페이징 -->
+                <div class="flex items-center justify-between px-6 py-4 border-t bg-white">
+                    <p class="text-xs text-slate-500 font-bold"
+                       x-text="`총 ${userPage.totalElements}명`"></p>
+
+                    <div class="flex gap-2 items-center">
+                        <button type="button"
+                                class="px-3 py-2 rounded-xl border text-xs font-bold"
+                                :disabled="userPage.page <= 1"
+                                :class="userPage.page <= 1 ? 'opacity-40 cursor-not-allowed' : ''"
+                                @click="goUserPage(userPage.page - 1)">
+                            이전
+                        </button>
+
+                        <template x-for="p in userPageNumbers" :key="p">
+                            <button type="button"
+                                    class="px-3 py-2 rounded-xl border text-xs font-bold"
+                                    :class="p === userPage.page ? 'bg-slate-900 text-white border-slate-900' : ''"
+                                    @click="goUserPage(p)"
+                                    x-text="p">
+                            </button>
+                        </template>
+
+                        <button type="button"
+                                class="px-3 py-2 rounded-xl border text-xs font-bold"
+                                :disabled="userPage.page >= userPage.totalPages"
+                                :class="userPage.page >= userPage.totalPages ? 'opacity-40 cursor-not-allowed' : ''"
+                                @click="goUserPage(userPage.page + 1)">
+                            다음
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 회원 상세 보기 모달 -->
+        <div x-show="adminSubpage === 'user_detail'"
+             class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4"
+             x-cloak>
+
+            <div class="bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl relative">
+
+                <button @click="adminSubpage=''"
+                        class="absolute top-5 right-6 text-2xl text-slate-400 hover:text-slate-700">
+                    x
+                </button>
+
+                <h3 class="text-2xl font-black mb-6 text-slate-800">
+                    회원 상세 정보
+                </h3>
+
+                <div class="space-y-4 text-sm">
+
+                    <div class="flex justify-between border-b pb-2">
+                        <span class="text-slate-500">이름</span>
+                        <span class="font-bold" x-text="selectedUser.name || '-'"></span>
+                    </div>
+
+                    <div class="flex justify-between border-b pb-2">
+                        <span class="text-slate-500">이메일</span>
+                        <span class="font-bold" x-text="selectedUser.email || '-'"></span>
+                    </div>
+
+                    <div class="flex justify-between border-b pb-2">
+                        <span class="text-slate-500">전화번호</span>
+                        <span class="font-bold" x-text="selectedUser.phone || '-'"></span>
+                    </div>
+
+                    <!-- ✅ 활성 상태도 row 형태로 맞추기 (여기가 지금 찌그러짐의 핵심) -->
+                    <div class="flex justify-between border-b pb-2">
+                        <span class="text-slate-500">상태</span>
+
+                        <span class="font-bold"
+                              :class="getUserActive(selectedUser) ? 'text-emerald-600' : 'text-red-600'"
+                              x-text="getUserActive(selectedUser) ? '활성' : '동결'">
+                        </span>
+                    </div>
+
+
+                </div>
+
+                <button @click="adminSubpage=''"
+                        class="w-full mt-8 bg-slate-900 text-white py-3 rounded-xl font-bold">
+                    닫기
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- ✅ 문의 답변 작성 모달 -->
+        <div x-show="adminSubpage === 'inquiry_reply'"
+             class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[210] flex items-center justify-center p-4"
+             x-cloak
+             @keydown.escape.window="closeInquiryReply()">
+
+            <!-- 바깥(오버레이) 클릭 시 닫기 -->
+            <div class="absolute inset-0" @click="closeInquiryReply()"></div>
+
+            <!-- 모달 카드 -->
+            <div class="relative bg-white w-full max-w-2xl rounded-[32px] p-8 shadow-2xl">
+
+                <!-- 우측 상단 X -->
+                <button type="button"
+                        @click="closeInquiryReply()"
+                        class="absolute top-6 right-7 text-2xl text-slate-400 hover:text-slate-700">
+                    x
+                </button>
+
+                <h3 class="text-2xl font-black mb-6 text-slate-800">
+                    답변 작성
+                </h3>
+
+                <!-- 상단: 제목/작성자/상태 -->
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold text-slate-400">제목</p>
+                            <p class="font-black text-lg text-slate-800 break-words"
+                               x-text="selectedInquiry?.title ? selectedInquiry.title : ('문의 #' + (selectedInquiry?.inquiryId ?? ''))"></p>
+                        </div>
+
+                        <span class="shrink-0 px-3 py-1 rounded-full text-[10px] font-black tracking-widest"
+                              :class="selectedInquiry?.status === 'ANSWERED'
+                      ? 'bg-slate-100 text-slate-600'
+                      : (selectedInquiry?.status === 'OPEN'
+                          ? 'bg-orange-100 text-orange-600'
+                          : 'bg-slate-200 text-slate-700')"
+                              x-text="selectedInquiry?.status === 'ANSWERED'
+                      ? '답변 완료'
+                      : (selectedInquiry?.status === 'OPEN'
+                          ? '열람(미답변)'
+                          : '미열람')">
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2 justify-end mt-2">
+                        <select x-model="manualInquiryStatus"
+                                class="border px-3 py-2 rounded-xl text-xs font-bold">
+                            <option value="CLOSED">미열람</option>
+                            <option value="OPEN">미답변</option>
+                            <option value="ANSWERED">답변완료</option>
+                        </select>
+
+                        <button type="button"
+                                class="px-4 py-2 rounded-xl border text-xs font-bold hover:bg-slate-100"
+                                @click="setInquiryStatus(selectedInquiry.inquiryId, manualInquiryStatus)">
+                            상태 적용
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-50 rounded-2xl p-4 border">
+                            <p class="text-xs font-bold text-slate-400 mb-1">작성자</p>
+                            <p class="font-bold text-slate-800"
+                               x-text="selectedInquiry?.writerName || ('USER #' + (selectedInquiry?.writerId ?? ''))"></p>
+                            <p class="text-xs text-slate-400"
+                               x-text="selectedInquiry?.writerId ? ('userId: ' + selectedInquiry.writerId) : ''"></p>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-2xl p-4 border">
+                            <p class="text-xs font-bold text-slate-400 mb-1">작성일</p>
+                            <p class="font-bold text-slate-800"
+                               x-text="selectedInquiry?.createdAt ? selectedInquiry.createdAt : '-'"></p>
+                        </div>
+                    </div>
+
+                    <!-- 작성 내용 -->
+                    <div class="bg-white rounded-2xl p-4 border">
+                        <p class="text-xs font-bold text-slate-400 mb-2">문의 내용</p>
+                        <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap"
+                           x-text="selectedInquiry?.content || ''"></p>
+                    </div>
+                </div>
+
+                <!-- 관리자 답변 textarea -->
+                <div class="bg-slate-50 rounded-2xl p-4 border">
+                    <p class="text-xs font-bold text-slate-400 mb-2">관리자 답변</p>
+
+                    <textarea x-model="replyText"
+                              :readonly="isReplyReadonly"
+                              :class="isReplyReadonly ? 'opacity-80 cursor-not-allowed' : ''"
+                              placeholder="관리자 답변을 입력하세요..."
+                              class="w-full bg-transparent border-none focus:ring-0 outline-none text-sm h-40 resize-none"></textarea>
+
+                    <div class="flex justify-end gap-2 mt-3">
+
+                        <!-- 수정(= 읽기모드면 편집모드로 전환 / 편집모드면 PUT 저장) -->
+                        <button type="button"
+                                class="px-5 py-2 rounded-xl border font-bold text-xs hover:bg-slate-100 transition"
+                                :disabled="!inquiryDetail?.replyId && !isAnswered(selectedInquiry)"
+                                :class="!inquiryDetail?.replyId ? 'opacity-40 cursor-not-allowed' : ''"
+                                @click="clickUpdate()"
+                                x-text="isReplyReadonly ? '수정' : '저장'">
+                        </button>
+
+                        <!-- 삭제 -->
+                        <button type="button"
+                                class="px-5 py-2 rounded-xl border font-bold text-xs text-red-600 hover:bg-red-50 transition"
+                                :disabled="!inquiryDetail?.replyId && !isAnswered(selectedInquiry)"
+                                :class="!inquiryDetail?.replyId ? 'opacity-40 cursor-not-allowed' : ''"
+                                @click="deleteReply()">
+                            삭제
+                        </button>
+
+                        <!-- 등록 -->
+                        <button type="button"
+                                class="px-5 py-2 rounded-xl font-bold text-xs bg-slate-900 text-white hover:opacity-90 transition"
+                                :disabled="isAnswered(selectedInquiry) || !!inquiryDetail?.replyId"
+                                :class="inquiryDetail?.replyId ? 'opacity-40 cursor-not-allowed' : ''"
+                                @click="insertReply()">
+                            등록
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+    </div>
+</main>
+
+
+<th:block th:replace="admin/admin-fragments :: footer"></th:block>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="/admin/admin-state.js"></script>
+
+<script> if(!window.adminApp) {
+    alert("admin-state.js 로딩 실패: 경로(/admin/admin-state.js) 확인 필요");
+}</script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+</body>
+</html>

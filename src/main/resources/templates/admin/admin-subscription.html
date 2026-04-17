@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="admin/admin-fragments :: head('StudyCafe Admin - Subscription')"></th:block>
+</head>
+<body class="bg-slate-50 text-slate-800" x-data="adminApp()" x-cloak>
+<th:block th:replace="admin/admin-fragments :: nav('subscription')"></th:block>
+
+<main class="max-w-7xl mx-auto mt-6 p-4 fade-in">
+    <div class="max-w-5xl mx-auto">
+        <h2 class="text-3xl font-black mb-12 text-center">サブスクリプション・プラン</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <template x-for="sub in [
+          {t:'7日間集中', p:'35,000円', d:'1日7時間まで / 予約優先権'},
+          {t:'30日無制限', p:'100,000円', d:'24時間使い放題 / ドリンク完全無料', hot:true},
+          {t:'年間パスポート', p:'400,000円', d:'月額換算3.3万円 / 最安値'}
+        ]" :key="sub.t">
+                <div class="p-8 rounded-3xl border shadow-sm flex flex-col transition hover:shadow-xl"
+                     :class="sub.hot ? 'bg-emerald-700 text-white scale-105 border-4 border-emerald-400' : 'bg-white text-slate-800'">
+                    <p x-show="sub.hot" class="text-[10px] font-bold bg-white text-emerald-700 px-3 py-1 rounded-full w-fit mb-4">RECOMMEND</p>
+                    <h3 class="text-xl font-black mb-2" x-text="sub.t"></h3>
+                    <p class="text-3xl font-black mb-6" x-text="sub.p"></p>
+                    <p class="text-sm opacity-80 mb-10" x-text="sub.d"></p>
+                    <a href="/admin/booking" class="mt-auto py-4 rounded-xl font-bold transition text-center"
+                       :class="sub.hot ? 'bg-white text-emerald-700' : 'bg-emerald-700 text-white'">予約フローへ</a>
+                </div>
+            </template>
+        </div>
+    </div>
+</main>
+
+<th:block th:replace="admin/admin-fragments :: footer"></th:block>
+</body>
+</html>

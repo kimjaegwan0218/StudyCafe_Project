@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 실패 - StudyCafe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+<div class="max-w-lg mx-auto p-6 mt-10">
+
+    <!-- 실패아이콘 -->
+    <div class="text-center mb-8">
+        <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-5xl">✕</span>
+        </div>
+        <h1 class="text-3xl font-black text-red-600">결제를 실패했어요</h1>
+        <p class="text-slate-500 mt-2">다시 한 번 시도해주세요.</p>
+    </div>
+
+    <!-- 에러상세 -->
+    <div class="bg-white rounded-3xl shadow-lg p-8 mb-6">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">에러 상세 내용</h2>
+
+        <div class="bg-red-50 p-4 rounded-2xl border border-red-100">
+            <p class="text-sm text-red-600" th:if="${errorCode}">
+                에러 코드: <span th:text="${errorCode}" class="font-mono">ERR_XXX</span>
+            </p>
+            <p class="text-red-700 mt-2" th:text="${errorMessage}">
+                결제 처리 중에 에러가 발생했어요
+            </p>
+        </div>
+
+        <div class="mt-6 text-sm text-slate-500">
+            <p class="font-bold mb-2">추측 가능한 원인:</p>
+            <ul class="list-disc list-inside space-y-1">
+                <li>카드정보 입력실수</li>
+                <li>카드의 이용 한도 초과</li>
+                <li>카드의 유효기간 만료</li>
+                <li>결제 취소</li>
+                <li>네트워크 에러</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 액션버튼アクションボタン -->
+    <div class="space-y-4">
+        <a href="/booking"
+           class="block w-full bg-emerald-700 text-white py-4 rounded-2xl font-bold text-center
+                      hover:bg-emerald-800 transition shadow-lg">
+            한번 더 결제
+        </a>
+        <a href="/"
+           class="block w-full bg-white text-slate-600 py-4 rounded-2xl font-bold text-center
+                      border-2 border-slate-200 hover:border-slate-400 transition">
+            상위페이지로 돌아가기
+        </a>
+    </div>
+
+    <!-- 서포트안내サポート案内 -->
+    <div class="mt-8 p-4 bg-slate-100 rounded-2xl text-center">
+        <p class="text-xs text-slate-500">
+            문제가 해결 안 되면<br>
+            <a href="/mypage" class="text-emerald-600 font-bold hover:underline">
+                문의
+            </a>
+            여기로 연락해주세요.
+        </p>
+    </div>
+
+</div>
+
+</body>
+</html>

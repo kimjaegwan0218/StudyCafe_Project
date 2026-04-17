@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정액플랜결제 - StudyCafe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Toss Payments SDK -->
+    <script src="https://js.tosspayments.com/v1/payment"></script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+<div class="max-w-lg mx-auto p-6 mt-10">
+
+    <!-- 헤더ヘッダー -->
+    <div class="text-center mb-10">
+        <h1 class="text-3xl font-black text-emerald-800">StudyCafe.</h1>
+        <p class="text-slate-500 mt-2">정액플랜결제</p>
+    </div>
+
+    <!-- 주문정보카드注文情報カード -->
+    <div class="bg-white rounded-3xl shadow-lg p-8 mb-6">
+        <h2 class="text-lg font-bold text-slate-800 mb-6">플랜내용</h2>
+
+        <div class="space-y-4 text-sm">
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-slate-500">주문번호</span>
+                <span class="font-mono" th:text="${orderId}">SUB-20240525-XXXX</span>
+            </div>
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-slate-500">플랜</span>
+                <span class="font-bold" th:text="${orderName}">StudyCafe 30일정액플랜</span>
+            </div>
+            <div class="flex justify-between pt-2">
+                <span class="text-lg font-bold">지불금액</span>
+                <span class="text-2xl font-black text-emerald-700">
+                    <span th:text="${#numbers.formatInteger(amount, 0, 'COMMA')}">29,900</span>円
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 결제버튼에리어決済ボタンエリア -->
+    <div class="bg-white rounded-3xl shadow-lg p-8">
+        <h2 class="text-lg font-bold text-slate-800 mb-6">지불방식</h2>
+
+        <!-- Toss Payments 결제버튼決済ボタン -->
+        <div class="space-y-4">
+            <button id="payment-button"
+                    class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg
+                           hover:bg-blue-700 transition shadow-lg flex items-center justify-center gap-2">
+                <span>Toss Pay 에서 결제하기</span>
+            </button>
+
+            <button id="card-button"
+                    class="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold text-lg
+                           hover:bg-slate-900 transition shadow-lg flex items-center justify-center gap-2">
+                <span>신용카드로 결제하기</span>
+            </button>
+        </div>
+
+        <p class="text-xs text-slate-400 text-center mt-6">
+            결제는 Toss Payments 가 안전하게 처리해요
+        </p>
+    </div>
+
+    <!-- 돌아가는 링크戻るリンク -->
+    <div class="text-center mt-8">
+        <a href="/subscription" class="text-emerald-600 font-bold text-sm hover:underline">
+            플랜선택으로 돌아가기
+        </a>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    // Thymeleaf에서 값을 취득から値を受け取る
+    const clientKey = /*[[${clientKey}]]*/ 'test_ck_xxx';
+    const orderId = /*[[${orderId}]]*/ 'SUB-TEST';
+    const amount = /*[[${amount}]]*/ 29900;
+    const orderName = /*[[${orderName}]]*/ 'StudyCafe 30일정액플랜';
+
+    // URL을구축を構築
+    const baseUrl = window.location.origin;
+    const successUrl = baseUrl + '/api/subscription-payments/toss/success';
+    const failUrl = baseUrl + '/api/subscription-payments/toss/fail';
+
+    console.log('successUrl:', successUrl);
+
+    // Toss Payments 초기화初期化
+    const tossPayments = TossPayments(clientKey);
+
+    // Toss Pay 결제버튼決済ボタン
+    document.getElementById('payment-button').addEventListener('click', function() {
+        tossPayments.requestPayment('카드', {
+            amount: amount,
+            orderId: orderId,
+            orderName: orderName,
+            customerName: '고객명',
+            successUrl: successUrl,
+            failUrl: failUrl,
+        }).catch(function(error) {
+            if (error.code === 'USER_CANCEL') {
+                console.log('결제가 캔슬되었어요');
+            } else {
+                console.error('결제에러:', error);
+                alert('결제중에 에러가 발생했어: ' + error.message);
+            }
+        });
+    });
+
+    // 카드결제버튼カード決済ボタン
+    document.getElementById('card-button').addEventListener('click', function() {
+        tossPayments.requestPayment('카드', {
+            amount: amount,
+            orderId: orderId,
+            orderName: orderName,
+            customerName: '고객명',
+            successUrl: successUrl,
+            failUrl: failUrl,
+        }).catch(function(error) {
+            if (error.code !== 'USER_CANCEL') {
+                console.error('결제에러', error);
+                alert('결제중에 에러가 발생햇어: ' + error.message);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

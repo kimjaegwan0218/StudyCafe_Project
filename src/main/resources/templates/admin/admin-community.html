@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="admin/admin-fragments :: head('StudyCafe Admin - Community')"></th:block>
+</head>
+<body class="bg-slate-50 text-slate-800" x-data="adminApp()" x-cloak>
+<th:block th:replace="admin/admin-fragments :: nav('community')"></th:block>
+
+<main class="max-w-7xl mx-auto mt-6 p-4 fade-in">
+    <div class="max-w-4xl mx-auto">
+        <div x-show="subpage === ''">
+            <h2 class="text-xl font-bold mb-6 flex items-center text-orange-600">🔥 베스트 공부 기록</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <template x-for="post in posts.filter(p => p.likes >= 100).slice(0, 3)" :key="post.id">
+                    <div @click="selectedPost = post; subpage = 'post_detail'"
+                         class="bg-white p-6 rounded-3xl border-2 border-orange-100 shadow-sm hover:shadow-md cursor-pointer transition">
+                        <h3 class="font-bold text-sm line-clamp-2 h-10 mb-4" x-text="post.title"></h3>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-400" x-text="post.author"></span>
+                            <span class="text-orange-600 font-black">👍 <span x-text="post.likes"></span></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-black">게시판</h2>
+                <button @click="subpage = 'write_post'" class="bg-emerald-700 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-emerald-800 transition">
+                    + 기록 쓰기
+                </button>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-sm border overflow-hidden">
+                <template x-for="post in posts.slice(0, visiblePosts)" :key="post.id">
+                    <div class="p-6 border-b hover:bg-slate-50 flex justify-between items-center transition"
+                         :class="post.isPinned ? 'bg-orange-50 border-l-4 border-l-orange-500' : ''">
+
+                        <div class="flex-1 cursor-pointer" @click="selectedPost = post; subpage = 'post_detail'">
+                            <div class="flex items-center space-x-2">
+                                <span x-show="post.isPinned" class="bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">중요</span>
+                                <h4 class="font-bold text-lg" x-text="post.title"></h4>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-2" x-text="`${post.author} | ${post.date}`"></p>
+                        </div>
+
+                        <div class="flex items-center space-x-4">
+                            <div class="flex space-x-2">
+                                <button @click.stop="togglePin(post)"
+                                        :class="post.isPinned ? 'text-orange-600' : 'text-slate-400'"
+                                        class="p-2 hover:bg-orange-100 rounded-full transition" title="상단 고정">📌</button>
+                                <button @click.stop="deletePost(post.id)"
+                                        class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition" title="삭제">🗑️</button>
+                            </div>
+                            <div class="text-slate-300 font-bold">❤️ <span x-text="post.likes"></span></div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <button @click="visiblePosts += 10" x-show="visiblePosts < posts.length"
+                    class="w-full mt-10 bg-white border-2 border-emerald-600 text-emerald-600 py-4 rounded-2xl font-black">
+                더 보기
+            </button>
+        </div>
+
+        <!-- 상세 모달 -->
+        <div x-show="subpage === 'post_detail' && selectedPost"
+             class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4"
+             @click.self="subpage = ''">
+            <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-[40px] shadow-2xl overflow-y-auto p-8 md:p-12 relative animate-fade-in">
+                <button @click="subpage = ''" class="absolute top-6 right-8 text-slate-400 hover:text-slate-800 text-2xl">✕</button>
+
+                <div class="mb-8">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <span x-show="selectedPost?.isPinned" class="bg-orange-500 text-white text-xs px-3 py-1 rounded-full font-bold">📌 중요</span>
+                        <span class="text-emerald-600 font-bold text-sm" x-text="selectedPost?.date"></span>
+                    </div>
+                    <h2 class="text-3xl font-black mb-4 leading-tight" x-text="selectedPost?.title"></h2>
+                    <p class="text-slate-500 mb-8 pb-8 border-b" x-text="`작성자: ${selectedPost?.author}`"></p>
+                    <div class="text-lg leading-relaxed text-slate-700 whitespace-pre-wrap" x-text="selectedPost?.content"></div>
+                </div>
+
+                <div class="flex space-x-3 mb-10 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                    <button @click="togglePin(selectedPost)"
+                            class="flex-1 py-3 rounded-xl font-bold border-2 transition flex items-center justify-center"
+                            :class="selectedPost?.isPinned ? 'bg-orange-50 border-orange-500 text-orange-600' : 'bg-white border-slate-200 text-slate-400 hover:border-orange-300'">
+                        <span x-text="selectedPost?.isPinned ? '📌 상단 고정 해제' : '📌 상단 고정하기'"></span>
+                    </button>
+                    <button @click="deletePost(selectedPost.id)"
+                            class="flex-1 py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 border-2 border-transparent transition flex items-center justify-center">
+                        🗑️ 게시글 삭제
+                    </button>
+                </div>
+
+                <div class="mt-12">
+                    <h3 class="font-black text-xl mb-6">댓글</h3>
+                    <div class="space-y-6 mb-8">
+                        <template x-for="comment in selectedPost?.comments" :key="comment.date + comment.user">
+                            <div class="p-4 rounded-2xl" :class="comment.role === 'admin' ? 'bg-emerald-50 border border-emerald-100' : 'bg-slate-50'">
+                                <div class="flex justify-between mb-2">
+                    <span class="font-bold text-sm" :class="comment.role === 'admin' ? 'text-emerald-700' : 'text-slate-700'">
+                      <span x-show="comment.role === 'admin'">🛡️</span> <span x-text="comment.user"></span>
+                    </span>
+                                    <span class="text-[10px] text-slate-400" x-text="comment.date"></span>
+                                </div>
+                                <p class="text-sm text-slate-600" x-text="comment.text"></p>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <input type="text" x-model="newCommentBody" placeholder="댓글을 입력..."
+                               class="flex-1 border-2 border-slate-100 p-4 rounded-2xl outline-none focus:border-emerald-500 bg-slate-50">
+                        <button @click="addComment(selectedPost)" class="bg-emerald-700 text-white px-6 rounded-2xl font-bold hover:bg-emerald-800 transition">전송</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 글쓰기 -->
+        <div x-show="subpage === 'write_post'" class="fade-in">
+            <button @click="subpage = ''" class="mb-6 text-emerald-600 font-bold">← 취소</button>
+            <div class="bg-white p-10 rounded-[40px] shadow-xl border">
+                <h2 class="text-3xl font-black mb-8">오늘의 학습 기록</h2>
+                <input type="text" placeholder="제목(예: 영어 단어 테스트 100점!)"
+                       class="w-full border-2 border-slate-50 p-4 rounded-2xl mb-4 bg-slate-50 focus:border-emerald-500 outline-none transition">
+                <textarea placeholder="학습한 내용이나 지금 기분을 자유롭게 작성해 주세요..."
+                          class="w-full border-2 border-slate-50 p-4 rounded-2xl h-64 mb-6 bg-slate-50 focus:border-emerald-500 outline-none transition"></textarea>
+                <button @click="alert('게시했습니다!'); subpage=''"
+                        class="w-full bg-emerald-700 text-white py-5 rounded-2xl font-bold shadow-xl">
+                    기록 공개하기
+                </button>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<th:block th:replace="admin/admin-fragments :: footer"></th:block>
+</body>
+</html>

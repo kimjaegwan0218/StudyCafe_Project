@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>자주 묻는 질문 | StudyCafe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+</head>
+
+<body x-data="{ view: 'dashboard', historyModal: false }" class="bg-white text-slate-800">
+
+<nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="/admin" class="text-2xl font-bold text-emerald-800">StudyCafe.</a>
+
+        <div class="hidden md:flex space-x-6 font-bold text-sm items-center">
+
+            <!-- 공지(드롭다운: 요금 안내/FAQ/기본정보•지도) -->
+            <div class="relative inline-flex items-center h-full font-bold text-sm"
+                 x-data="{ open:false }"
+                 @mouseenter="open=true" @mouseleave="open=false">
+
+                <a href="/news" class="py-4 hover:text-emerald-700 transition">공지</a>
+
+                <div x-cloak x-show="open"
+                     class="absolute top-full left-0 mt-2 w-48 bg-white border rounded-xl shadow-lg overflow-hidden z-50"
+                     x-transition>
+                    <a href="/price" class="block px-4 py-3 text-sm hover:bg-slate-50">요금 안내</a>
+                    <a href="/faq" class="block px-4 py-3 text-sm hover:bg-slate-50">FAQ</a>
+                    <a href="/info" class="block px-4 py-3 text-sm hover:bg-slate-50">기본정보 • 지도</a>
+                </div>
+            </div>
+            <!-- 예약(드롭다운: 예약/구독) -->
+            <div class="relative"
+                 x-data="{ open:false, path: window.location.pathname }"
+                 @mouseenter="open=true" @mouseleave="open=false">
+
+                <!-- ✅ 상단 '예약'은 booking/subscription일 때만 초록 -->
+                <a href="/booking"
+                   :class="(path.startsWith('/booking') || path.startsWith('/subscription'))
+              ? 'text-emerald-700'
+              : ''">
+                    예약
+                </a>
+
+                <div x-cloak x-show="open"
+                     class="absolute left-0 mt-2 w-32 bg-white border rounded-xl shadow-lg overflow-hidden z-50">
+
+                    <!-- ✅ 드롭다운 내부도 현재 페이지면 강조 -->
+                    <a href="/subscription"
+                       class="block px-4 py-3 text-sm hover:bg-slate-50"
+                       :class="path.startsWith('/subscription') ? 'text-emerald-700 font-bold' : ''">
+                        구독 구매
+                    </a>
+                </div>
+            </div>
+            <a href="/service" class="hover:text-emerald-700 transition">서비스</a>
+            <a href="/community" class="hover:text-emerald-700 transition">커뮤니티</a>
+
+            <div sec:authorize="isAnonymous()">
+                <a href="/login" class="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-2 rounded-full font-bold transition shadow-sm text-xs">
+                    로그인
+                </a>
+            </div>
+
+            <div sec:authorize="isAuthenticated()" class="flex items-center space-x-6">
+                <a href="/mypage" class="text-emerald-700 font-bold">내 페이지</a>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button class="text-slate-400 hover:text-red-500 transition ml-4">로그아웃</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</nav>
+
+<main class="max-w-3xl mx-auto mt-10 p-4">
+    <h2 class="text-3xl font-black text-center mb-10 text-emerald-900">자주 묻는 질문 (FAQ)</h2>
+
+    <div class="space-y-4">
+        <div th:if="${list.isEmpty()}" class="text-center py-10 text-slate-400">
+            등록된 질문이 없습니다.
+        </div>
+
+        <div th:each="item : ${list}" class="bg-white rounded-2xl shadow border overflow-hidden"
+             x-data="{ open: false }">
+
+            <button @click="open = !open"
+                    class="w-full flex justify-between items-center p-6 text-left font-bold hover:bg-slate-50 transition">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded shrink-0"
+                          th:text="${item.category}">카테고리</span>
+                    <span class="text-lg text-slate-800" th:text="${item.question}">질문 내용</span>
+                </div>
+                <span :class="open ? 'rotate-180' : ''" class="transition-transform duration-300 text-emerald-600 shrink-0">
+                    ▼
+                </span>
+            </button>
+
+            <div x-show="open" x-cloak x-transition
+                 class="p-6 bg-slate-50 border-t text-slate-600 leading-relaxed whitespace-pre-wrap">
+                <span class="font-bold text-emerald-600 mr-2">A.</span>
+                <span th:text="${item.answer}">답변 내용</span>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

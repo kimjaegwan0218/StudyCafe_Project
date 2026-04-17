@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>定額プラン登録完了 - StudyCafe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+<div class="max-w-lg mx-auto p-6 mt-10">
+
+    <!-- 성공 아이콘成功アイコン -->
+    <div class="text-center mb-8">
+        <div class="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-5xl text-emerald-600">&#10003;</span>
+        </div>
+        <h1 class="text-3xl font-black text-emerald-800">등록성공！</h1>
+        <p class="text-slate-500 mt-2">정액플랜이 유효하게 되었어요</p>
+    </div>
+
+    <!-- 플랜정보 카드プラン情報カード -->
+    <div class="bg-white rounded-3xl shadow-lg p-8 mb-6">
+        <h2 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+            정액플랜상세
+        </h2>
+
+        <div class="space-y-4 text-sm">
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-slate-500">상태</span>
+                <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">
+                    유효
+                </span>
+            </div>
+            <div class="flex justify-between pt-2">
+                <span class="text-lg font-bold">지불금액</span>
+                <span class="text-2xl font-black text-emerald-700">
+                    <span th:text="${#numbers.formatInteger(result.totalPrice, 0, 'COMMA')}">29,900</span>원
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 특전안내特典案内 -->
+    <div class="bg-emerald-50 rounded-3xl p-6 mb-6 border-2 border-emerald-100">
+        <h3 class="font-bold text-emerald-800 mb-3">이용특전</h3>
+        <ul class="text-sm text-emerald-700 space-y-2">
+            <li>24시간 언제든 이용가능</li>
+            <li>좌석예약의 기본요금이 무료</li>
+            <li>특별석의 추가요금만 발생</li>
+        </ul>
+    </div>
+
+    <!-- 액션버튼アクションボタン -->
+    <div class="space-y-4">
+        <a href="/booking"
+           class="block w-full bg-emerald-700 text-white py-4 rounded-2xl font-bold text-center
+                  hover:bg-emerald-800 transition shadow-lg">
+            지금당장예약하기
+        </a>
+        <a href="/mypage"
+           class="block w-full bg-white text-emerald-700 py-4 rounded-2xl font-bold text-center
+                  border-2 border-emerald-200 hover:border-emerald-400 transition">
+            마이페이지를 확인하기
+        </a>
+        <a href="/"
+           class="block w-full text-slate-500 py-3 rounded-2xl font-medium text-center
+                  hover:text-slate-700 transition">
+            상위페이지로 돌아가기
+        </a>
+    </div>
+
+    <!-- 주의사항注意事項 -->
+    <div class="mt-8 p-4 bg-slate-100 rounded-2xl">
+        <p class="text-xs text-slate-500 leading-relaxed">
+            정액플랜의 유효기간중에는 기본좌석요금이 무료에요.
+            특별석(프리니엄석)은 추가요금이 발생해요.
+            플랜의 해약,변경은 마이페이지에서 가능해요.
+        </p>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="admin/admin-fragments :: head('StudyCafe Admin - Booking')"></th:block>
+</head>
+<body class="bg-slate-50 text-slate-800" x-data="adminApp()" x-cloak>
+<th:block th:replace="admin/admin-fragments :: nav('booking')"></th:block>
+
+<main class="max-w-7xl mx-auto mt-6 p-4 fade-in">
+    <div class="max-w-3xl mx-auto">
+        <h2 class="text-3xl font-black mb-10 text-center text-emerald-900">좌석 예약 흐름</h2>
+
+        <div class="flex justify-between mb-10 px-4">
+            <template x-for="step in [1, 2, 3, 4]" :key="step">
+                <div class="flex items-center flex-1 last:flex-none">
+                    <div :class="bookingStep >= step ? 'text-emerald-700 font-bold' : 'text-gray-400'" class="flex flex-col items-center">
+              <span class="w-10 h-10 border-2 rounded-full flex items-center justify-center mb-1 text-sm transition"
+                    :class="bookingStep >= step ? 'border-emerald-700 bg-emerald-50' : 'border-gray-300'"
+                    x-text="step"></span>
+                        <span class="text-[10px]" x-text="['날짜/플랜','좌석','확인','결제'][step-1]"></span>
+                    </div>
+                    <div x-show="step < 4" class="flex-1 border-t-2 mt-[-15px] mx-4 transition"
+                         :class="bookingStep > step ? 'border-emerald-700' : 'border-gray-200'"></div>
+                </div>
+            </template>
+        </div>
+
+        <div x-show="bookingStep === 1" class="bg-white p-8 rounded-3xl shadow-lg border">
+            <div class="space-y-6">
+                <div>
+                    <label class="block font-bold mb-2">이용일</label>
+                    <input type="date" x-model="selectedDate" class="w-full border p-4 rounded-xl bg-slate-50 outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-2">시작 시간 (10분 단위)</label>
+                    <select x-model="selectedTime" class="w-full border p-4 rounded-xl bg-slate-50 outline-none">
+                        <template x-for="h in 24" :key="h">
+                            <template x-for="m in ['00','10','20','30','40','50']" :key="m">
+                                <option :value="`${String(h-1).padStart(2,'0')}:${m}`" x-text="`${String(h-1).padStart(2,'0')}:${m}`"></option>
+                            </template>
+                        </template>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-4">이용 플랜</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <template x-for="plan in [{name:'1시간',p:1000,h:1},{name:'2시간',p:2000,h:2},{name:'3시간',p:2500,h:3},{name:'4시간',p:3500,h:4},{name:'5시간',p:4000,h:5},{name:'10시간',p:8000,h:10}]" :key="plan.h">
+                            <button @click="selectedPlan = {name:plan.name+'패키지', price:plan.p, hours:plan.h}"
+                                    :class="selectedPlan.hours === plan.h ? 'border-emerald-600 bg-emerald-50 text-emerald-800' : 'border-slate-100 text-slate-500'"
+                                    class="border-2 p-4 rounded-xl text-left transition font-black">
+                                <span x-text="plan.name"></span><br><span class="text-xl" x-text="`${plan.p.toLocaleString()}원`"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <button @click="bookingStep = 2" :disabled="!selectedDate"
+                        class="w-full bg-emerald-700 text-white py-4 rounded-2xl font-bold shadow-lg disabled:opacity-50">
+                    좌석 선택으로 이동
+                </button>
+            </div>
+        </div>
+
+        <div x-show="bookingStep === 2" class="bg-white p-8 rounded-3xl shadow-lg border">
+            <div class="mb-6 p-4 bg-slate-50 rounded-2xl text-xs space-y-1">
+                <p class="font-bold text-slate-700">【추가요금 안내】</p>
+                <p class="text-red-600">■ 빨간색（커플석）：+1,000원</p>
+                <p class="text-yellow-600">■ 노란색（회의실）：+2,000원</p>
+            </div>
+
+            <div class="seat-grid mb-10">
+                <template x-for="seat in seats" :key="seat.id">
+                    <div @click="seat.status === 'open' ? selectedSeat = seat : null"
+                         :class="{
+                    'bg-slate-300 opacity-40 cursor-not-allowed': seat.status === 'occupied',
+                    'bg-red-500 text-white': seat.status === 'open' && seat.type === 'couple',
+                    'bg-yellow-400': seat.status === 'open' && seat.type === 'meeting',
+                    'bg-emerald-500 text-white': seat.status === 'open' && seat.type === 'normal',
+                    'ring-4 ring-offset-2 ring-blue-500 scale-110 z-10': selectedSeat?.id === seat.id
+                 }"
+                         class="h-14 flex items-center justify-center rounded-xl cursor-pointer transition font-black shadow-sm"
+                         x-text="seat.id"></div>
+                </template>
+            </div>
+
+            <div class="flex space-x-4">
+                <button @click="bookingStep = 1" class="flex-1 bg-slate-100 py-4 rounded-xl font-bold">뒤로</button>
+                <button @click="bookingStep = 3" :disabled="!selectedSeat"
+                        class="flex-1 bg-emerald-700 text-white py-4 rounded-xl font-bold disabled:opacity-50">
+                    확인으로 이동
+                </button>
+            </div>
+        </div>
+
+        <div x-show="bookingStep === 3" class="bg-white p-10 rounded-3xl shadow-lg border">
+            <div class="bg-slate-50 p-6 rounded-2xl space-y-4 mb-8">
+                <div class="flex justify-between border-b pb-2"><span>플랜</span><span class="font-bold" x-text="selectedPlan.name"></span></div>
+                <div class="flex justify-between border-b pb-2"><span>이용 시간</span><span class="font-bold" x-text="`${selectedDate} ${selectedTime} 〜 ${getEndTime()}`"></span></div>
+                <div class="flex justify-between border-b pb-2"><span>좌석</span><span class="font-bold" x-text="`${selectedSeat?.id}番`"></span></div>
+                <div class="flex justify-between pt-4"><span class="font-black">합계</span><span class="text-3xl font-black text-emerald-800" x-text="`${getTotalPrice().toLocaleString()}円`"></span></div>
+            </div>
+            <button @click="bookingStep = 4" class="w-full bg-emerald-700 text-white py-4 rounded-xl font-bold">결제로 이동</button>
+        </div>
+
+        <div x-show="bookingStep === 4" class="bg-white p-10 rounded-3xl shadow-lg border text-center fade-in">
+            <div class="mb-8 text-left">
+                <label class="block font-bold mb-2 text-sm text-slate-500">할인 쿠폰</label>
+                <input type="text" x-model="couponCode" placeholder="쿠폰 코드를 입력"
+                       class="w-full border-2 border-slate-50 p-4 rounded-2xl bg-slate-50 outline-none focus:border-emerald-500">
+            </div>
+            <div class="mb-8 p-4 bg-slate-900 text-white rounded-2xl flex justify-between items-center">
+                <span class="text-sm">최종 결제 금액</span>
+                <span class="text-2xl font-black text-emerald-400" x-text="`${getTotalPrice().toLocaleString()}원`"></span>
+            </div>
+            <div class="space-y-4">
+                <button @click="alert('카드결제'); bookingStep=1" class="w-full border-2 border-slate-100 p-5 rounded-xl hover:border-emerald-500 font-bold">💳 신용카드</button>
+                <button @click="alert('Toss Pay결제'); bookingStep=1" class="w-full bg-[#0064ff] text-white p-5 rounded-xl font-bold">Toss Pay</button>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<th:block th:replace="admin/admin-fragments :: footer"></th:block>
+</body>
+</html>

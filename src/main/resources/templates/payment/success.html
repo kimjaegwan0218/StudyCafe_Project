@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 완료 - StudyCafe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+<div class="max-w-lg mx-auto p-6 mt-10">
+
+    <!-- 성공아이콘成功アイコン -->
+    <div class="text-center mb-8">
+        <div class="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-5xl">✓</span>
+        </div>
+        <h1 class="text-3xl font-black text-emerald-800">결제 완료！</h1>
+        <p class="text-slate-500 mt-2">감사합니다.</p>
+    </div>
+
+    <!-- 예약정보카드予約情報カード -->
+    <div class="bg-white rounded-3xl shadow-lg p-8 mb-6">
+        <h2 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <span>📋</span> 예약 상세
+        </h2>
+
+        <div class="space-y-4 text-sm">
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-slate-500">예약ID</span>
+                <span class="font-mono font-bold" th:text="'#' + ${result.reservationId}">
+                        #12345
+                    </span>
+            </div>
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-slate-500">결제ID</span>
+                <span class="font-mono" th:text="${result.paymentId}">13345</span>
+            </div>
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-slate-500">상태</span>
+                <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">
+                        결제완료
+                    </span>
+            </div>
+            <div class="flex justify-between pt-2">
+                <span class="text-lg font-bold">지불 금액</span>
+                <span class="text-2xl font-black text-emerald-700">
+                        $<span th:text="${#numbers.formatInteger(result.totalPrice, 0, 'COMMA')}">3,000</span>
+                    </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 영수증다운로드領収書ダウンロード -->
+    <div class="bg-emerald-50 rounded-3xl p-6 mb-6 border-2 border-emerald-100">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="font-bold text-emerald-800">영수증</p>
+                <p class="text-xs text-emerald-600" th:text="${result.receiptId}">RC-20240525-XXXXXXXX</p>
+            </div>
+            <a th:href="${result.receiptUrl}"
+               class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold text-sm
+                          hover:bg-emerald-700 transition shadow-md flex items-center gap-2">
+                <span>📄</span>
+                <span>다운로드</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 액션버튼アクションボタン -->
+    <div class="space-y-4">
+        <a href="/mypage"
+           class="block w-full bg-emerald-700 text-white py-4 rounded-2xl font-bold text-center
+                      hover:bg-emerald-800 transition shadow-lg">
+            마이페이지에서 확인하기
+        </a>
+        <a href="/"
+           class="block w-full bg-white text-emerald-700 py-4 rounded-2xl font-bold text-center
+                      border-2 border-emerald-200 hover:border-emerald-400 transition">
+            상위페이지로 돌아가기
+        </a>
+    </div>
+
+    <!-- 주의사항注意事項 -->
+    <div class="mt-8 p-4 bg-slate-100 rounded-2xl">
+        <p class="text-xs text-slate-500 leading-relaxed">
+            ⚠️ 예약내용의 변경 취소는 마이페이지에서 가능<br>
+            이용 시작 시간의 1시간전까지만 취소 가능
+        </p>
+    </div>
+
+</div>
+
+</body>
+</html>

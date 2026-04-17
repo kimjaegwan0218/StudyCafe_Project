@@ -1,0 +1,278 @@
+ <!DOCTYPE html>
+<html lang="ja" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <title>Subscription | StudyCafe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 전역 -->
+    <script defer src="/assets/js/app.js"></script>
+    <!-- alpine -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+
+<body x-data="app()" class="bg-slate-50 text-slate-800"
+      th:attr="data-user-id=${#authentication.principal.user.id}">
+
+<!-- ================= NAV ================= -->
+<nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="/admin" class="text-2xl font-bold text-emerald-800">StudyCafe.</a>
+
+        <div class="hidden md:flex space-x-6 font-bold text-sm items-center">
+            <!-- 공지(드롭다운: 요금 안내/FAQ/기본정보•지도) -->
+            <div class="relative inline-flex items-center h-full font-bold text-sm"
+                 x-data="{ open:false }"
+                 @mouseenter="open=true" @mouseleave="open=false">
+
+                <a href="/news" class="py-4 hover:text-emerald-700 transition">공지</a>
+
+                <div x-cloak x-show="open"
+                     class="absolute top-full left-0 mt-2 w-48 bg-white border rounded-xl shadow-lg overflow-hidden z-50"
+                     x-transition>
+                    <a href="/price" class="block px-4 py-3 text-sm hover:bg-slate-50">요금 안내</a>
+                    <a href="/faq" class="block px-4 py-3 text-sm hover:bg-slate-50">FAQ</a>
+                    <a href="/info" class="block px-4 py-3 text-sm hover:bg-slate-50">기본정보 • 지도</a>
+                </div>
+            </div>
+
+            <!-- 예약(드롭다운: 예약/구독) -->
+            <div class="relative"
+                 x-data="{ open:false, path: window.location.pathname }"
+                 @mouseenter="open=true" @mouseleave="open=false">
+
+                <a href="/booking"
+                   :class="(path.startsWith('/booking') || path.startsWith('/subscription')) ? 'text-emerald-700' : ''">
+                    예약
+                </a>
+
+                <div x-cloak x-show="open"
+                     class="absolute left-0 mt-2 w-32 bg-white border rounded-xl shadow-lg overflow-hidden z-50">
+
+                    <a href="/subscription"
+                       class="block px-4 py-3 text-sm hover:bg-slate-50"
+                       :class="path.startsWith('/subscription') ? 'text-emerald-700 font-bold' : ''">
+                        구독 구매
+                    </a>
+                </div>
+            </div>
+
+            <a href="/service">서비스</a>
+            <a href="/community">커뮤니티</a>
+
+            <!-- 로그인 전 -->
+            <div sec:authorize="isAnonymous()">
+                <a href="/login" class="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-2 rounded-full font-bold transition shadow-sm text-xs">
+                    로그인
+                </a>
+            </div>
+
+            <div sec:authorize="isAuthenticated()" class="flex items-center space-x-6">
+                <a href="/mypage" class="text-emerald-700 font-bold">내 페이지</a>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button class="text-slate-400 hover:text-red-500 transition ml-4">로그아웃</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ================= MAIN ================= -->
+<main class="max-w-5xl mx-auto mt-10 p-4"
+      x-data="subscriptionPage()"
+      x-init="init()"
+>
+    <h2 class="text-3xl font-black mb-3 text-center text-emerald-900">
+        구독 플랜
+    </h2>
+
+    <p class="text-center text-slate-500 mb-10 text-sm">
+        (개발용) 구매 → 예약 페이지의 결제(step4)로 이동합니다.
+    </p>
+
+    <!-- 로딩/에러 -->
+    <div x-show="loading" class="text-center text-slate-500 py-10">
+        가격표 불러오는 중...
+    </div>
+
+    <div x-show="!loading && error" class="text-center text-red-600 py-6" x-text="error"></div>
+
+    <!-- 플랜 카드 -->
+    <div x-show="!loading && !error"
+         class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <template x-for="sub in plans" :key="sub.subType">
+            <div class="p-8 rounded-3xl border shadow-sm flex flex-col transition hover:shadow-xl"
+                 :class="sub.hot ? 'bg-emerald-700 text-white scale-105 border-4 border-emerald-400' : 'bg-white text-slate-800'">
+
+                <p x-show="sub.hot"
+                   class="text-[10px] font-bold bg-white text-emerald-700 px-3 py-1 rounded-full w-fit mb-4">
+                    RECOMMEND
+                </p>
+
+                <h3 class="text-xl font-black mb-2" x-text="sub.title"></h3>
+
+                <p class="text-3xl font-black mb-6" x-text="fmt(sub.price)"></p>
+
+                <p class="text-sm opacity-80 mb-10" x-text="sub.desc"></p>
+
+                <button type="button"
+                        @click="buy(sub)"
+                        class="mt-auto py-4 rounded-xl font-bold transition"
+                        :class="sub.hot ? 'bg-white text-emerald-700' : 'bg-emerald-700 text-white'">
+                    지금 구매
+                </button>
+            </div>
+        </template>
+    </div>
+
+    <!-- 안내 -->
+    <div class="mt-12 bg-white border rounded-3xl p-6 shadow-sm">
+        <h3 class="font-black text-lg mb-3 text-emerald-900">안내</h3>
+        <ul class="text-sm text-slate-600 space-y-2">
+            <li>• 가격은 DB의 <code class="px-1 bg-slate-100 rounded">subscription_price</code> 테이블에서 불러옵니다.</li>
+            <li>• 구매 버튼 클릭 시 선택값이 localStorage에 저장됩니다:
+                <code class="px-1 bg-slate-100 rounded">subscriptionCheckout</code>
+            </li>
+            <li>• 이후 <code class="px-1 bg-slate-100 rounded">/booking?pay=sub</code> 로 이동해서 결제(step4)로 진입합니다.</li>
+        </ul>
+    </div>
+</main>
+
+<script>
+    window.subscriptionPage = function () {
+        return {
+            plans: [],
+            loading: false,
+            buying: false,
+            error: '',
+
+            fmt(n) {
+                return Number(n || 0).toLocaleString('ko-KR') + '원'
+            },
+
+            titleByDays(days) {
+                if (days === 7) return '7일권'
+                if (days === 30) return '30일 무제한'
+                if (days === 365) return '연간 이용권'
+                return `${days}일 플랜`
+            },
+
+            descByDays(days) {
+                if (days === 7) return '24시간 무제한'
+                if (days === 30) return '24시간 무제한 / 음료 완전 무료'
+                if (days === 365) return '월 환산 3.3만원 / 최저가'
+                return '설명 준비중'
+            },
+
+            isHot(days) {
+                return days === 30
+            },
+
+            getUserId() {
+                const raw = document.body?.dataset?.userId
+                const id = raw ? Number(raw) : NaN
+                return Number.isFinite(id) ? id : null
+            },
+
+            async init() {
+                this.loading = true
+                this.error = ''
+
+                try {
+                    const resp = await fetch('/api/subscription-plans', { credentials: 'include' })
+                    if (!resp.ok) {
+                        const text = await resp.text()
+                        throw new Error(text || `HTTP ${resp.status}`)
+                    }
+
+                    const data = await resp.json()
+                    this.plans = (data || [])
+                        .slice()
+                        .sort((a, b) => Number(a.subType) - Number(b.subType))
+                        .map(p => {
+                            const days = Number(p.subType) // durationDays
+                            return {
+                                subType: days,
+                                subscriptionType: String(p.subscriptionType), // ✅ 서버가 준 타입 그대로
+                                price: Number(p.price),
+                                title: this.titleByDays(days),
+                                desc: this.descByDays(days),
+                                hot: this.isHot(days),
+                            }
+                        })
+                } catch (e) {
+                    console.error(e)
+                    this.error = e?.message || '구독 플랜을 불러오지 못했습니다.'
+                    alert(this.error)
+                } finally {
+                    this.loading = false
+                }
+            },
+
+            async buy(sub) {
+                if (this.buying) return
+                this.buying = true
+
+                const userId = this.getUserId()
+                if (!userId) {
+                    alert('로그인이 필요해요')
+                    location.href = '/login'
+                    this.buying = false
+                    return
+                }
+
+                try {
+                    const resp = await fetch('/api/subscription-payments', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            userId: userId,
+                            subscriptionType: sub.subscriptionType, // ✅ WEEK_7 / MONTH_30 / YEAR_365
+                            couponCode: null
+                        })
+                    })
+
+                    // ✅ 200이 아니어도 서버가 {success:false,message:"..."}를 내려주니까 우선 JSON 시도
+                    let payload = null
+                    const ct = resp.headers.get('content-type') || ''
+                    if (ct.includes('application/json')) {
+                        payload = await resp.json()
+                    } else {
+                        const text = await resp.text()
+                        throw new Error(text || `HTTP ${resp.status}`)
+                    }
+
+                    if (!resp.ok || !payload?.success) {
+                        alert(payload?.message || '결제 작성에 실패했어요')
+                        return
+                    }
+
+                    const params = new URLSearchParams({
+                        subscriptionCode: payload.subscriptionCode,
+                        orderId: payload.orderId,
+                        amount: payload.amount,
+                        orderName: payload.orderName
+                    })
+
+                    location.href = `/subscription/payment?${params.toString()}`
+                } catch (e) {
+                    console.error('결제 작성 에러:', e)
+                    alert(e?.message || '결제 작성 중 에러가 발생했어요')
+                } finally {
+                    this.buying = false
+                }
+            }
+        }
+    }
+</script>
+
+
+</body>
+</html>
